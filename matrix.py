@@ -123,6 +123,9 @@ class MatrixWrapper:
     """
     return (len(self.matrix),len(self.matrix[0]))
 
+  def __str__(self):
+    return str(self.matrix)
+
 class ListMatrixWrapper(MatrixWrapper):
   """A wrapper for a list matrix
 
