@@ -1,6 +1,7 @@
 """Main file for equation solver program."""
 
-from equations import isGaussianEqnMatrix,solveEquations
+from equations import isGaussianEqnMatrix,solveEquations, \
+  NO_SOLUTION, INFINITE_SOLUTION, UNIQUE_SOLUTION, GaussianEqnMatrixWrapper
 from number_utilities import normalizeNumber, wholeNumberToSubscript
 from tkinter import BOTH, BOTTOM, HORIZONTAL, NW,  RIGHT, TOP, LEFT, \
   VERTICAL,X, Y, CENTER, Tk, PhotoImage, Canvas, BooleanVar, StringVar, \
@@ -20,7 +21,7 @@ COMPLEX_NUMBER_INFO_TEXT=\
   "Complex numbers must be input as a+bi, a-bi, bi or -bi"+\
   " where a,b are real numbers, b is non-negative and "+\
   "i (j also accepted) represents square root of -1\n"
-NO_OR_INF_SOLUTIONS="No or infinite solutions"
+#NO_OR_INF_SOLUTIONS="No or infinite solutions"
 NUMBER_TYPES=(int,float,complex)
 
 settings=getSettings()
@@ -144,14 +145,40 @@ def solutionToText(solution):
   """Converts solution of a system of equations to text form
   and returns the same
   Args:
-    solution: None or list representing solution of system of linear 
-    equations
+    solution: A tuple whose first element is a GaussianEqnMatrixWrapper
+    representing the row reduced echelon form and the second element is 
+    a text NO_SOLUTION, INFINITE_SOLUTION or UNIQUE_SOLUTION
   Returns:
-    A string of the format "x₁=<value1>,..." or "No or infinite solutions" 
-    representing the solution
+    A string of the format "x₁=<value1>,..." 
+    (could be independent or in terms of y₁,y₂,... representing free variables) 
+    or NO_SOLUTION representing the solution
   """
-  #TODO: Interpret new format
   resultText=""
+  if type(solution) is not tuple:
+    raise TypeError("Argument solution to solutionToText function"+\
+                    " must be a pair (two-tuple)")
+  if len(solution)!=2:
+    raise ValueError("Argument solution to solutionToText function"+\
+                        " must be a pair (two-tuple)")
+  if not isinstance(solution[0],GaussianEqnMatrixWrapper):
+    raise TypeError("First element of solution must be a GaussianEqnMatrixWrapper")
+  if type(solution[1]) is not str:
+    raise TypeError("Second element of solution tuple must be a string")
+  if solution[1] not in (NO_SOLUTION,INFINITE_SOLUTION,UNIQUE_SOLUTION):
+    raise ValueError("Second element of solution tuple must be one of "+\
+                     str((NO_SOLUTION,INFINITE_SOLUTION,UNIQUE_SOLUTION)))
+  if solution[1]==NO_SOLUTION:
+    return NO_SOLUTION
+  elif solution[1]==UNIQUE_SOLUTION:
+    rref=solution[0]
+    rowCount,colCount=rref.getOrder()
+    for j in range(1,colCount):
+      numberString=numberToText(rref.get(j,colCount))
+      resultText+=("x"+wholeNumberToSubscript(j)+"="+numberString+", ")
+    resultText=resultText[:-2]
+  else:
+    #TODO: Interpret infinite solution
+    return INFINITE_SOLUTION
   """if solution is not None:
     if type(solution) is not list:
       raise TypeError("Argument solution to solutionToText function"+\
@@ -165,8 +192,8 @@ def solutionToText(solution):
       resultText+=("x"+wholeNumberToSubscript(i)+"="+numberString+", ")
     resultText=resultText[:-2]
   else:
-    resultText=NO_OR_INF_SOLUTIONS
-  return resultText"""
+    resultText=NO_OR_INF_SOLUTIONS"""
+  return resultText
 
 topFrame=Frame(root)
 topFrame.pack(fill=BOTH,expand=1)
@@ -419,7 +446,6 @@ def loadEquations(equations):
   """Loads into the equation solver frame the equations passed and its solution
   Args:
     equations: A list (Gaussian Equation Matrix) representing the equations."""
-  #TODO: Interpret solution correctly
   if not isGaussianEqnMatrix(equations):
     raise TypeError("First element of argument historyRecord to"+\
                     " loadHistoryRecord must be"+\
@@ -508,6 +534,7 @@ def solveAndShowSolution():
   Raises:
     ValueError: 
       Raised if any of the coefficients/constant term is not a valid number """
+  #TODO: Interpret solution correctly
   root.focus()
   matrix=[]
   equationsCount=len(equationsFrameLHSWidgets)
