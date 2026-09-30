@@ -100,6 +100,7 @@ def solveEquations(data):
                     jColVal=wrapper.get(j,colIndex)
                     #wrapper.multiplyRow(j,rowColVal)
                     wrapper.addRowMultToAnother(j,rowIndex,-jColVal/rowColVal)
+                wrapper.multiplyRow(rowIndex,1/rowColVal)
                 rowIndex+=1
                 break
         colIndex+=1
