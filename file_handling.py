@@ -6,7 +6,8 @@ solution(None or list of int,float,complex).
 *User-specified settings in settings.csv in the format
 Setting,Value"""
 
-from equations import isGaussianEqnMatrix
+from equations import isGaussianEqnMatrix, GaussianEqnMatrixWrapper, \
+  NO_SOLUTION,INFINITE_SOLUTION,UNIQUE_SOLUTION
 from matrix import MatrixWrapper
 from pickle import load,dump
 from csv import reader,writer
@@ -79,6 +80,7 @@ def addRecordToHistory(equations,solution,maxLimit=None):
     maxLimit: An int representing the maximum no. of history records
     to be stored or None to represent no limit.
   """
+  #TODO: Interpret solution correctly
   if isinstance(equations,MatrixWrapper):
     eqnsMatrix=equations.matrix
   else:
@@ -87,16 +89,29 @@ def addRecordToHistory(equations,solution,maxLimit=None):
     raise TypeError("Argument data to addRecordToHistory function"+\
                     " must be a Gaussian Equation Matrix or"+\
                     " a MatrixWrapper reprenting one.")
-  if solution is not None and type(solution) is not list:
+  if type(solution) is not tuple:
+      raise TypeError("Argument solution to solutionToText function"+\
+                      " must be a pair (two-tuple)")
+  if len(solution)!=2:
+    raise ValueError("Argument solution to solutionToText function"+\
+                        " must be a pair (two-tuple)")
+  if not isinstance(solution[0],GaussianEqnMatrixWrapper) and not isGaussianEqnMatrix(solution[0]):
+    raise TypeError("First element of solution must be a GaussianEqnMatrixWrapper")
+  if type(solution[1]) is not str:
+    raise TypeError("Second element of solution tuple must be a string")
+  if solution[1] not in (NO_SOLUTION,INFINITE_SOLUTION,UNIQUE_SOLUTION):
+    raise ValueError("Second element of solution tuple must be one of "+\
+                      str((NO_SOLUTION,INFINITE_SOLUTION,UNIQUE_SOLUTION)))
+  """if solution is not None and type(solution) is not list:
     raise TypeError("Argument solution to addGaussianMatrixToHistory"+\
-                    " function must be a list.")
+                    " function must be a list.")"""
   if maxLimit is not None and type(maxLimit) is not int:
     raise TypeError("Argument maxLimit to addRecordToHistory function"+\
                     " must be a an int.")
   if type(maxLimit) is int and maxLimit<0:
     raise ValueError("Argument maxLimit to addRecordToHistory function"+\
                      " must be non-negative.")
-  if solution is not None:
+  """if solution is not None:
     for number in solution:
       if type(number) not in (int,float,complex):
         raise TypeError("List passed as argument to solution parameter of"+\
@@ -104,8 +119,9 @@ def addRecordToHistory(equations,solution,maxLimit=None):
                         " int,float or complex only.")
     if len(solution)!=len(eqnsMatrix):
       raise ValueError("No. of equations in the Gaussian Matrix and the"+\
-                       " no. of variables solved for don't match.")
-    
+                       " no. of variables solved for don't match.")"""
+  if isinstance(solution[0],GaussianEqnMatrixWrapper):
+    solution=(solution[0].matrix,solution[1])  
   record=(eqnsMatrix,solution)
   history=getHistory()
   history.append(record)

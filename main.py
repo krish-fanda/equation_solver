@@ -150,7 +150,7 @@ def solutionToText(solution):
     a text NO_SOLUTION, INFINITE_SOLUTION or UNIQUE_SOLUTION
   Returns:
     A string of the format "x₁=<value1>,..." 
-    (could be independent or in terms of y₁,y₂,... representing free variables) 
+    (could be independent or in terms of other (free) variables) 
     or NO_SOLUTION representing the solution
   """
   resultText=""
@@ -160,7 +160,7 @@ def solutionToText(solution):
   if len(solution)!=2:
     raise ValueError("Argument solution to solutionToText function"+\
                         " must be a pair (two-tuple)")
-  if not isinstance(solution[0],GaussianEqnMatrixWrapper):
+  if not isinstance(solution[0],GaussianEqnMatrixWrapper) and not isGaussianEqnMatrix(solution[0]):
     raise TypeError("First element of solution must be a GaussianEqnMatrixWrapper")
   if type(solution[1]) is not str:
     raise TypeError("Second element of solution tuple must be a string")
@@ -170,7 +170,7 @@ def solutionToText(solution):
   if solution[1]==NO_SOLUTION:
     return NO_SOLUTION
   elif solution[1]==UNIQUE_SOLUTION:
-    rref=solution[0]
+    rref=solution[0] if isinstance(solution[0],GaussianEqnMatrixWrapper) else GaussianEqnMatrixWrapper(solution[0])
     rowCount,colCount=rref.getOrder()
     for j in range(1,colCount):
       numberString=numberToText(rref.get(j,colCount))
@@ -470,7 +470,6 @@ def addHistoryRecordButton(historyRecord):
     historyRecord: A tuple (list also allowed) corresponding to a record of 
     history. The tuple is of the form (equations,solution) representing the 
     equations (Gaussian Equation Matrix) and their solution (None or list)"""
-  #TODO: Interpret solution correctly
   if type(historyRecord) not in (list,tuple):
     raise TypeError("Argument historyRecord to addHistoryRecordButton"+\
                     " must be tuple (or list).")
@@ -485,7 +484,7 @@ def addHistoryRecordButton(historyRecord):
                     " a Gaussian Linear Equation Matrix (row operations"+\
                     " based) which is a list and all its elements are list"+\
                     " and no. of columns is 1 more than the no. of rows.")
-  if solution is not None:
+  """if solution is not None:
     if type(solution) is not list:
       raise TypeError("Second element of argument historyRecord to"+\
                     " addHistoryRecordButton must be a list.")
@@ -497,7 +496,7 @@ def addHistoryRecordButton(historyRecord):
       if type(element) not in NUMBER_TYPES:
         raise TypeError("All elements of second element of argument"+\
                         " historyRecord to addHistoryRecordButton function"+\
-                        " must be int,float or complex.")
+                        " must be int,float or complex.")"""
   buttonText=""
   for row in equations:
     for j in range(1,len(row)):
@@ -530,11 +529,11 @@ def solveAndShowSolution():
   in the solution label in eqnSolverFrame.
   Returns:
     A tuple of the form (equations,solution) representing the 
-    equations (Gaussian Equation Matrix) and their solution (None or list)
+    equations (Gaussian Equation Matrix) and their solution (a tuple whose first element
+    is the RREF matrix while second is type of solution)
   Raises:
     ValueError: 
       Raised if any of the coefficients/constant term is not a valid number """
-  #TODO: Interpret solution correctly
   root.focus()
   matrix=[]
   equationsCount=len(equationsFrameLHSWidgets)
@@ -550,14 +549,13 @@ def solveAndShowSolution():
   solution=solveEquations(matrix)
   resultText=solutionToText(solution)
   solutionLabel.config(text=resultText)
-  return (matrix,solution)
+  return (matrix,(solution[0].matrix,solution[1]))
   
 def onSolveButtonClick():
   """Event handler to be called when the Solve button in equationSolverFrame 
   is clicked. Solves the equations and show the solution in the solution label 
   in eqnSolverFrame and if equations have changed, adds the corresponding 
   record to history and displays button of that record in history tab."""
-  #TODO: Interpret solution correctly
   try:
     equations,solution=solveAndShowSolution()
   except ValueError:
