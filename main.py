@@ -150,8 +150,9 @@ def solutionToText(solution):
     A string of the format "x₁=<value1>,..." or "No or infinite solutions" 
     representing the solution
   """
+  #TODO: Interpret new format
   resultText=""
-  if solution is not None:
+  """if solution is not None:
     if type(solution) is not list:
       raise TypeError("Argument solution to solutionToText function"+\
                       " must be None or list.")
@@ -165,7 +166,7 @@ def solutionToText(solution):
     resultText=resultText[:-2]
   else:
     resultText=NO_OR_INF_SOLUTIONS
-  return resultText
+  return resultText"""
 
 topFrame=Frame(root)
 topFrame.pack(fill=BOTH,expand=1)
@@ -418,6 +419,7 @@ def loadEquations(equations):
   """Loads into the equation solver frame the equations passed and its solution
   Args:
     equations: A list (Gaussian Equation Matrix) representing the equations."""
+  #TODO: Interpret solution correctly
   if not isGaussianEqnMatrix(equations):
     raise TypeError("First element of argument historyRecord to"+\
                     " loadHistoryRecord must be"+\
@@ -442,6 +444,7 @@ def addHistoryRecordButton(historyRecord):
     historyRecord: A tuple (list also allowed) corresponding to a record of 
     history. The tuple is of the form (equations,solution) representing the 
     equations (Gaussian Equation Matrix) and their solution (None or list)"""
+  #TODO: Interpret solution correctly
   if type(historyRecord) not in (list,tuple):
     raise TypeError("Argument historyRecord to addHistoryRecordButton"+\
                     " must be tuple (or list).")
@@ -527,6 +530,7 @@ def onSolveButtonClick():
   is clicked. Solves the equations and show the solution in the solution label 
   in eqnSolverFrame and if equations have changed, adds the corresponding 
   record to history and displays button of that record in history tab."""
+  #TODO: Interpret solution correctly
   try:
     equations,solution=solveAndShowSolution()
   except ValueError:
