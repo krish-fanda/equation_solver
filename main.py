@@ -13,6 +13,7 @@ from tkinter.font import nametofont
 from file_handling import EQN_COUNT, IMAGINARY_UNIT, MAX_HISTORY, \
   getSettings,updateSettings, getHistory, clearHistory, \
   addRecordToHistory, truncateHistory
+from math import copysign
 
 NUMBER_VALIDITY_TEXT=" must be valid numbers (int,float,complex)."
 COEFFICIENT_ERROR_MESSAGE="Coefficients for variables"+NUMBER_VALIDITY_TEXT
@@ -167,18 +168,35 @@ def solutionToText(solution):
   if solution[1] not in (NO_SOLUTION,INFINITE_SOLUTION,UNIQUE_SOLUTION):
     raise ValueError("Second element of solution tuple must be one of "+\
                      str((NO_SOLUTION,INFINITE_SOLUTION,UNIQUE_SOLUTION)))
+  
   if solution[1]==NO_SOLUTION:
     return NO_SOLUTION
-  elif solution[1]==UNIQUE_SOLUTION:
-    rref=solution[0] if isinstance(solution[0],GaussianEqnMatrixWrapper) else GaussianEqnMatrixWrapper(solution[0])
-    rowCount,colCount=rref.getOrder()
+  
+  rref=solution[0] if isinstance(solution[0],GaussianEqnMatrixWrapper) else GaussianEqnMatrixWrapper(solution[0])
+  rowCount,colCount=rref.getOrder()
+
+  if solution[1]==UNIQUE_SOLUTION:
     for j in range(1,colCount):
       numberString=numberToText(rref.get(j,colCount))
       resultText+=("x"+wholeNumberToSubscript(j)+"="+numberString+", ")
-    resultText=resultText[:-2]
   else:
-    #TODO: Interpret infinite solution
-    return INFINITE_SOLUTION
+    rowIndex,colIndex=1,1
+    for rowIndex in range(1,rowCount+1):
+      while colIndex<colCount and rref.get(rowIndex,colIndex)==0:
+        resultText+=("x"+wholeNumberToSubscript(colIndex)+" free, ")
+        colIndex+=1
+      if colIndex==colCount:
+        break
+      resultText+="x"+wholeNumberToSubscript(colIndex)+"="+numberToText(rref.get(rowIndex,colCount))
+      for j in range(colIndex+1,colCount):
+        coefficient=-rref.get(rowIndex,j)
+        coefficientText=numberToText(coefficient)
+        if coefficient>0:
+          coefficientText="+"+coefficientText
+        if coefficient!=0:
+          resultText+=coefficientText+"x"+wholeNumberToSubscript(j)
+      resultText+=", "
+      colIndex+=1
   """if solution is not None:
     if type(solution) is not list:
       raise TypeError("Argument solution to solutionToText function"+\
@@ -193,7 +211,7 @@ def solutionToText(solution):
     resultText=resultText[:-2]
   else:
     resultText=NO_OR_INF_SOLUTIONS"""
-  return resultText
+  return resultText[:-2]
 
 topFrame=Frame(root)
 topFrame.pack(fill=BOTH,expand=1)
